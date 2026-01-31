@@ -2199,7 +2199,10 @@ func TestParseType_Interval(t *testing.T) {
 }
 
 func TestRegistrySanity(t *testing.T) {
-	spectest.RegistrySanityTest(t, TypeRegistry, []string{"enum"})
+	// Skip types that require specific valid values:
+	// - enum: requires actual enum values
+	// - branded_id: requires valid namespace (TSK, EPC, etc.)
+	spectest.RegistrySanityTest(t, TypeRegistry, []string{"enum", "branded_id"})
 }
 
 func TestInputVars(t *testing.T) {

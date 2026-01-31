@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"ariga.io/atlas/sql/branded"
 	"ariga.io/atlas/sql/schema"
 )
 
@@ -182,6 +183,9 @@ func FormatType(t schema.Type) (string, error) {
 		f = strings.ToLower(t.T)
 	case *PseudoType:
 		f = strings.ToLower(t.T)
+	case *branded.BrandedIDType:
+		// Branded IDs are stored as VARCHAR(14).
+		f = "character varying(14)"
 	case *schema.UnsupportedType:
 		return "", fmt.Errorf("postgres: unsupported type: %q", t.T)
 	default:

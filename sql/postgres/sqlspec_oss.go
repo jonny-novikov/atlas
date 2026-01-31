@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"ariga.io/atlas/schemahcl"
+	"ariga.io/atlas/sql/branded"
 	"ariga.io/atlas/sql/internal/specutil"
 	"ariga.io/atlas/sql/internal/sqlx"
 	"ariga.io/atlas/sql/postgres/internal/postgresop"
@@ -1101,6 +1102,8 @@ var TypeRegistry = schemahcl.NewRegistry(
 		}
 		return specs
 	}()...),
+	// Branded ID type for namespace-aware identifiers.
+	schemahcl.WithSpecs(branded.BrandedIDTypeSpec()),
 )
 
 func attr(typ *schemahcl.Type, key string) (*schemahcl.Attr, bool) {
@@ -1113,6 +1116,15 @@ func attr(typ *schemahcl.Type, key string) (*schemahcl.Attr, bool) {
 }
 
 func typeSpec(t schema.Type) (*schemahcl.Type, error) {
+	// Handle BrandedIDType with its ToSpec function.
+	if bid, ok := t.(*branded.BrandedIDType); ok {
+		return &schemahcl.Type{
+			T: branded.TypeBrandedID,
+			Attrs: []*schemahcl.Attr{
+				schemahcl.StringAttr("namespace", string(bid.Namespace)),
+			},
+		}, nil
+	}
 	if t, ok := t.(*schema.TimeType); ok && t.T != TypeDate {
 		spec := &schemahcl.Type{T: timeAlias(t.T)}
 		if p := t.Precision; p != nil && *p != defaultTimePrecision {
