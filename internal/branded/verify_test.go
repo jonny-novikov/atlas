@@ -61,3 +61,55 @@ func TestDefaultGenerate(t *testing.T) {
 		t.Errorf("Expected namespace USR, got %s", id.Namespace())
 	}
 }
+
+// TestCodemojexNamespaces verifies codemojex domain namespaces
+func TestCodemojexNamespaces(t *testing.T) {
+	// Players domain
+	namespaces := []struct {
+		ns       fiberfx.Namespace
+		expected string
+	}{
+		{fiberfx.NS_PLAYER, "PLR"},
+		{fiberfx.NS_PLAYER_RESOURCE, "RSC"},
+		{fiberfx.NS_ROOM, "ROM"},
+		{fiberfx.NS_GAME, "GAM"},
+		{fiberfx.NS_GUESS, "GUS"},
+		{fiberfx.NS_TRANSACTION, "TXN"},
+		{fiberfx.NS_DEPLOYMENT, "DPL"},
+		{fiberfx.NS_SHARE, "SHR"},
+	}
+
+	for _, tc := range namespaces {
+		if string(tc.ns) != tc.expected {
+			t.Errorf("Expected %q, got %q", tc.expected, tc.ns)
+		}
+		if !tc.ns.Valid() {
+			t.Errorf("Namespace %q should be valid", tc.ns)
+		}
+	}
+}
+
+// TestCodemojexIDGeneration verifies ID generation with codemojex namespaces
+func TestCodemojexIDGeneration(t *testing.T) {
+	gen := fiberfx.NewGenerator(1)
+
+	// Generate player ID
+	playerID := gen.New(fiberfx.NS_PLAYER)
+	if playerID.Namespace() != fiberfx.NS_PLAYER {
+		t.Errorf("Expected PLR namespace, got %s", playerID.Namespace())
+	}
+	if len(playerID.String()) != 14 {
+		t.Errorf("Expected 14 chars, got %d", len(playerID.String()))
+	}
+
+	// Generate room ID
+	roomID := gen.New(fiberfx.NS_ROOM)
+	if roomID.Namespace() != fiberfx.NS_ROOM {
+		t.Errorf("Expected ROM namespace, got %s", roomID.Namespace())
+	}
+
+	// IDs should be unique
+	if playerID.String() == roomID.String() {
+		t.Error("Generated IDs should be unique")
+	}
+}
